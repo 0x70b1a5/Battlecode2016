@@ -1,0 +1,9 @@
+/build
+/lib
+/docs
+*.rms
+*.jar
+*.swp
+*.DS_Store
+/testreport
+*~
