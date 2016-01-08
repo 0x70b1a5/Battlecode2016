@@ -1,14 +1,11 @@
 package team042;
 
-import java.awt.AWTException;
-import java.awt.Robot;
-
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
-public class Scout extends Robot {
+public class Scout {
 
-	public Scout(RobotController rc) throws AWTException {
+	public Scout(RobotController rc) {
 		super();
 		// TODO Auto-generated constructor stub
 	}

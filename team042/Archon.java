@@ -1,7 +1,6 @@
 package team042;
 
-import java.awt.AWTException;
-import java.awt.Robot;
+import java.util.Random;
 
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -10,12 +9,13 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 
-public class Archon extends Robot {
+public class Archon {
 
 	public static RobotController rc;
 	public static Utilities utils;
+	public static Direction[] dirs = Utilities.dirs;
 	
-	public Archon(RobotController robotController) throws AWTException{
+	public Archon(RobotController robotController) {
 		super();
 		rc = robotController;
 		utils = new Utilities(rc);
@@ -28,6 +28,8 @@ public class Archon extends Robot {
 		// - attack zeds when {rc.numNearbyZeds() > OMFG_RUN_THRESH} zeds nearby
 		// - TODO: spawn ratios
 		// --- TODO: spawn ratios respond to map/team status
+
+//		Random rand = new Random(rc.getID());
 
 		while (true) {
 			// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
@@ -52,7 +54,7 @@ public class Archon extends Robot {
 					// 3. Style on zeds
 
 					// BUILDING STUFF 
-					for (Direction dir : utils.dirs) {
+					for (Direction dir : dirs) {
 						if (rc.canBuild(dir, RobotType.TURRET)) {
 							if (rc.getTeamParts() > 82) {
 								// Lots of parts. TURRET.
@@ -107,37 +109,7 @@ public class Archon extends Robot {
 					// - Repairing 
 
 					// REPAIRING
-					//	TURRETS FIRST
-					RobotInfo[] nearbyTurrets = new RobotInfo[0];
-					// find turrets
-					for (RobotInfo bot : nearbyBots) {
-						if (bot.type == RobotType.TURRET) {
-							nearbyTurrets[nearbyTurrets.length] = bot;
-						}
-					}
-					// Are there turrets?
-					if (nearbyTurrets.length > 0) {// Yes.
-						// find weakest turret
-						RobotInfo weakest = nearbyTurrets[0];
-						for (RobotInfo tur : nearbyTurrets) {
-							if (tur.health < weakest.health) {
-								weakest = tur;
-							}
-						}
-
-						rc.repair(weakest.location);
-					} else {// No turrets.
-						// repair another bot instead.
-						// Find weakest near bot
-						RobotInfo weakest = nearbyBots[0]; 
-						for (RobotInfo bot : nearbyBots) {
-							if (bot.health < weakest.health) {
-								weakest = bot;
-							}
-						}
-
-						rc.repair(weakest.location);
-					}
+					// 		FORGET THIS NOISE
 
 					// SIGNALING
 					// TODO: anything at all here

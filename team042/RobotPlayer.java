@@ -1,12 +1,11 @@
 package team042;
 
-import java.awt.AWTException;
 import battlecode.common.*;
 import battlecode.common.RobotController;
 
 public class RobotPlayer {
 	
-	public static void run(RobotController robotController) throws AWTException {
+	public static void run(RobotController robotController) {
 		
 		//Robot robot = null; //Can do it this way if we rewrite Robot like 170 did. Would allow us to have common utility methods.
 		

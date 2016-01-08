@@ -1,8 +1,5 @@
 package team042;
 
-import java.awt.AWTException;
-import java.awt.Robot;
-
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
@@ -10,13 +7,13 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 
-public class Guard extends Robot {
+public class Guard {
 
 	public static RobotController rc;
 	public static Utilities utils;
 	public static RobotType rt;
 	
-	public Guard(RobotController robotController) throws AWTException {
+	public Guard(RobotController robotController) {
 		super();
 		rc = robotController;
 		utils = new Utilities(rc);

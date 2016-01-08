@@ -1,7 +1,6 @@
 package team042;
 
-import java.awt.AWTException;
-import java.awt.Robot;
+import java.util.Random;
 
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
@@ -10,13 +9,13 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 
-public class Turret extends Robot {
+public class Turret {
 
 	public static RobotController rc;
 	public static Utilities utils;
 	public static RobotType rt;
 	
-	public Turret(RobotController robotController) throws AWTException {
+	public Turret(RobotController robotController){
 		super();
 		rc = robotController;
 		utils = new Utilities(rc);
@@ -28,6 +27,7 @@ public class Turret extends Robot {
 		try {
 			// ONCE
 			myAttackRange = rt.attackRadiusSquared;
+//			Random rand = new Random(rc.getID());
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
@@ -77,16 +77,26 @@ public class Turret extends Robot {
 									myLoc.distanceSquaredTo(nearest.location)) {
 								nearest = current;
 							}
+						
 						}
-						// no enemies within range. I'm a turret!
-						// For now, just wait. Our time will come.
+						// There are enemies nearby, but our core is ready. 
+						// I'm a turret! BIDE TIME.
 						Clock.yield();
 					} else {
-						// I'm still a turret!
-						// DO NOTHING.
+						// no enemies within range. I'm still a turret!
+						// Check if there are too many friendlies nearby.
+						if (nearbyBots.length > 5) {
+							try {
+								rc.pack();
+							} catch (GameActionException e) {
+								e.printStackTrace();
+							}
+						} else {
+							// not too many people nearby. chill
+						}
 					}
 				} else {
-					// core is not ready.
+					// core is not ready. can't do much
 				}
 			}
 
