@@ -1,7 +1,6 @@
 package team042;
 
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
 
 public class Scout {
 

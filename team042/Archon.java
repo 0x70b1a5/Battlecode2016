@@ -2,12 +2,7 @@ package team042;
 
 import java.util.Random;
 
-import battlecode.common.Clock;
-import battlecode.common.Direction;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-import battlecode.common.RobotInfo;
-import battlecode.common.RobotType;
+import battlecode.common.*;
 
 public class Archon {
 
@@ -37,6 +32,7 @@ public class Archon {
 			try {
 				MapLocation myLoc = rc.getLocation();
 				RobotInfo[] nearbyBots = rc.senseNearbyRobots();
+				Random rand = new Random(rc.getID());
 				//					Signal[] signals = rc.emptySignalQueue();
 				//					if (signals.length > 0) {
 				//						// TODO: interpret signals
@@ -56,20 +52,20 @@ public class Archon {
 					// BUILDING STUFF 
 					for (Direction dir : dirs) {
 						if (rc.canBuild(dir, RobotType.TURRET)) {
-							if (rc.getTeamParts() > 82) {
+							if (rc.getTeamParts() > 150) {
 								// Lots of parts. TURRET.
 								rc.build(dir, RobotType.TURRET);
 							} else {
 								// Not so many parts.
 								// Randomly build soldiers or guards, biased slightly toward soldiers.
-								if (nearbyBots.length % 2 == 0) {
+								if (rand.nextInt() % 2 == 0) {
 									rc.build(dir, RobotType.SOLDIER);
 								} else {
 									rc.build(dir, RobotType.GUARD);
 								}
 							}
 						} else {
-							// Can't build in this dir. Next dir!
+							// Can't build in this dir. 
 						}
 					}
 					// MOVING AROUND
@@ -81,9 +77,9 @@ public class Archon {
 								rc.move(closerToBot);
 							} else {//can't move toward it!
 								for (int i=0; i<8; i++) {
-									Direction strafeDir = closerToBot.rotateRight();
-									if (rc.canMove(strafeDir)) {
-										rc.move(strafeDir);
+									closerToBot = closerToBot.rotateRight();
+									if (rc.canMove(closerToBot)) {
+										rc.move(closerToBot);
 									} 
 								}
 							}
@@ -94,9 +90,9 @@ public class Archon {
 								rc.move(awayFromBot);
 							} else { //can't move away!
 								for (int i=0; i<8; i++) {
-									Direction strafeDir = awayFromBot.rotateRight();
-									if (rc.canMove(strafeDir)) {
-										rc.move(strafeDir);
+									awayFromBot = awayFromBot.rotateRight();
+									if (rc.canMove(awayFromBot)) {
+										rc.move(awayFromBot);
 									} 
 								}
 							}

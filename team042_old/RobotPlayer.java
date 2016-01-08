@@ -46,7 +46,7 @@ public class RobotPlayer {
 				// Throwing an uncaught exception makes the robot die, so we need to catch exceptions.
 				// Caught exceptions will result in a bytecode penalty.
 				System.out.println(e.getMessage());
-				e.printStackTrace();
+				// LOL ;
 			}
 
 			while (true) {
@@ -166,7 +166,7 @@ public class RobotPlayer {
 					Clock.yield();
 				} catch (Exception e) {
 					System.out.println(e.getMessage());
-					e.printStackTrace();
+					// LOL ;
 				}
 			}
 		} else if (rt == RobotType.SOLDIER || rt == RobotType.GUARD) {
@@ -177,8 +177,7 @@ public class RobotPlayer {
 			} catch (Exception e) {
 				// Throwing an uncaught exception makes the robot die, so we need to catch exceptions.
 				// Caught exceptions will result in a bytecode penalty.
-				System.out.println(e.getMessage());
-				e.printStackTrace();
+				
 			}
 
 			while (true) {
@@ -270,7 +269,7 @@ public class RobotPlayer {
 					Clock.yield();
 				} catch (Exception e) {
 					System.out.println(e.getMessage());
-					e.printStackTrace();
+					// LOL ;
 				}
 			}
 		} else if (rt == RobotType.VIPER) {
@@ -284,7 +283,7 @@ public class RobotPlayer {
 				myAttackRange = rt.attackRadiusSquared;
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
-				e.printStackTrace();
+				// LOL ;
 			}
 
 			while (true) {
@@ -313,7 +312,7 @@ public class RobotPlayer {
 							} catch (GameActionException e) {
 								// TODO Auto-generated catch block
 								System.out.println(e.getMessage());
-								e.printStackTrace();
+								// LOL ;
 							}
 						}
 					} 
@@ -361,7 +360,7 @@ public class RobotPlayer {
 								rc.move(ttmDir);
 							} catch (GameActionException e) {
 								// TODO Auto-generated catch block
-								e.printStackTrace();
+								// LOL ;
 							}
 						}
 					}
