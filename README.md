@@ -5,7 +5,7 @@ As time and entropy, we are the inexorable.
 ## Changelog
 * 2016/01/06:
   * Initial A.I. built and pushed.
-    * Two-Word Strategy Summary: *[https://www.youtube.com/watch?v=P96Ne_CkFuQ](TURTLE TOWER!)*
+    * Two-Word Strategy Summary: *[TURTLE TOWER!](https://www.youtube.com/watch?v=P96Ne_CkFuQ)*
     * Movement
       * All units will move toward other friendly units.
       * If a unit sees a hostile (zed OR enemy), it will move toward it and attack.
