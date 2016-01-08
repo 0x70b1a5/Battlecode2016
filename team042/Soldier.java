@@ -1,4 +1,4 @@
-package bleakfortune;
+package team042;
 
 import java.awt.AWTException;
 import java.awt.Robot;
@@ -10,13 +10,13 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 
-public class Guard extends Robot {
+public class Soldier extends Robot {
 
 	public static RobotController rc;
 	public static Utilities utils;
 	public static RobotType rt;
 	
-	public Guard(RobotController robotController) throws AWTException {
+	public Soldier(RobotController robotController) throws AWTException {
 		super();
 		rc = robotController;
 		utils = new Utilities(rc);
@@ -24,7 +24,6 @@ public class Guard extends Robot {
 	}
 
 	public void run() {
-		// TODO: make guards prefer attacking zeds
 		int myAttackRange = 0;
 		try {
 			// Any code here gets executed exactly once at the beginning of the game.
