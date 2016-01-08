@@ -10,7 +10,7 @@ public class RobotPlayer {
 		//Robot robot = null; //Can do it this way if we rewrite Robot like 170 did. Would allow us to have common utility methods.
 		
 		// parse the current robot. Might remove type() and just replace with hardcode. We're going for efficiency not 'proper' looking code
-		
+
 		if (robotController.getType() == RobotType.ARCHON) {
 
 			Archon robot = new Archon(robotController);
@@ -47,5 +47,6 @@ public class RobotPlayer {
 			robot.run();
 			
 		} 
+
 	}
 }

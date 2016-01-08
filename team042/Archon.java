@@ -24,15 +24,16 @@ public class Archon {
 		// - TODO: spawn ratios
 		// --- TODO: spawn ratios respond to map/team status
 
-//		Random rand = new Random(rc.getID());
-
+		try{
+			Team myTeam = rc.getTeam();
+			Random rand = new Random(rc.getID());
+			int mySight = 35;
 		while (true) {
 			// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
 			// at the end of it, the loop will iterate once per game round.
-			try {
 				MapLocation myLoc = rc.getLocation();
+				RobotInfo[] enemies = rc.senseHostileRobots(myLoc,mySight);
 				RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-				Random rand = new Random(rc.getID());
 				//					Signal[] signals = rc.emptySignalQueue();
 				//					if (signals.length > 0) {
 				//						// TODO: interpret signals
@@ -50,52 +51,36 @@ public class Archon {
 					// 3. Style on zeds
 
 					// BUILDING STUFF 
+					int typeToBuild = rand.nextInt();
 					for (Direction dir : dirs) {
-						if (rc.canBuild(dir, RobotType.TURRET)) {
-							if (rc.getTeamParts() > 150) {
-								// Lots of parts. TURRET.
-								rc.build(dir, RobotType.TURRET);
+						if (rc.canBuild(dir, RobotType.TURRET) && rc.isCoreReady()) {
+							if (typeToBuild % 2 == 0){
+									rc.build(dir, RobotType.TURRET);
+							} else if (typeToBuild % 3 == 0) {
+								rc.build(dir, RobotType.GUARD);
 							} else {
-								// Not so many parts.
-								// Randomly build soldiers or guards, biased slightly toward soldiers.
-								if (rand.nextInt() % 2 == 0) {
-									rc.build(dir, RobotType.SOLDIER);
-								} else {
-									rc.build(dir, RobotType.GUARD);
-								}
+								rc.build(dir, RobotType.SOLDIER);
+								// Can't build in this dir. 
 							}
-						} else {
-							// Can't build in this dir. 
+						} else{
+							// can't build in this dir
 						}
 					}
 					// MOVING AROUND
 					for (RobotInfo bot : nearbyBots) {
-						if (bot.team == utils.myTeam) {
+						// Prioritize turrets
+						if (bot.team == utils.myTeam && bot.type == RobotType.TURRET) {
 							// Move toward it.
-							Direction closerToBot = myLoc.directionTo(nearbyBots[0].location);
-							if (rc.canMove(closerToBot)) {
-								rc.move(closerToBot);
-							} else {//can't move toward it!
-								for (int i=0; i<8; i++) {
-									closerToBot = closerToBot.rotateRight();
-									if (rc.canMove(closerToBot)) {
-										rc.move(closerToBot);
-									} 
-								}
-							}
+							Direction closerToBot = myLoc.directionTo(bot.location);
+							utils.tryMove(closerToBot);
+						} else if (bot.team == utils.myTeam) {
+							// Move toward it.
+							Direction closerToBot = myLoc.directionTo(bot.location);
+							utils.tryMove(closerToBot);
 						} else {
 							// Move away.
-							Direction awayFromBot = myLoc.directionTo(nearbyBots[0].location).opposite();
-							if (rc.canMove(awayFromBot)) {
-								rc.move(awayFromBot);
-							} else { //can't move away!
-								for (int i=0; i<8; i++) {
-									awayFromBot = awayFromBot.rotateRight();
-									if (rc.canMove(awayFromBot)) {
-										rc.move(awayFromBot);
-									} 
-								}
-							}
+							Direction awayFromBot = myLoc.directionTo(bot.location).opposite();
+							utils.tryMove(awayFromBot);
 						}
 					}
 
@@ -105,17 +90,25 @@ public class Archon {
 					// - Repairing 
 
 					// REPAIRING
-					// 		FORGET THIS NOISE
+					RobotInfo weakest = nearbyBots[0];
+					for (RobotInfo friend : nearbyBots) {
+						if (friend.team == myTeam && friend.health <= weakest.health ) {
+							weakest = friend;
+						}
+					}
+					if (weakest.team == myTeam && rc.canAttackLocation(weakest.location)) {
+						rc.repair(weakest.location);
+					}
 
 					// SIGNALING
 					// TODO: anything at all here
 				}
 				
 				Clock.yield();
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-				e.printStackTrace();
 			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }

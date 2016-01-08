@@ -21,47 +21,31 @@ public class Soldier {
 	public void run() {
 		try {
 			// Any code here gets executed exactly once at the beginning of the game.
-			int myAttackRange = rt.attackRadiusSquared;
-
+			int myRange = rt.attackRadiusSquared;
+			Random rand = new Random(rc.getID());
 			while (true) {
 				// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
 				// at the end of it, the loop will iterate once per game round.
-				MapLocation myLoc = rc.getLocation();
-				RobotInfo[] enemiesWithinRange = rc.senseHostileRobots(myLoc, myAttackRange);
-				RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-
 				if (rc.isCoreReady()) {
+					MapLocation myLoc = rc.getLocation();
+					RobotInfo[] enemies= rc.senseHostileRobots(myLoc, myRange);
+					RobotInfo[] friends= rc.senseNearbyRobots(myRange);
 					// If enemies within range, attack one
-					if (enemiesWithinRange.length > 0) {		
-						// Check if weapon is ready
-						if (rc.isWeaponReady()) {
-							// Find weakest enemy
-							RobotInfo weakest = enemiesWithinRange[0];
-							for (RobotInfo enemy : enemiesWithinRange) {
-								RobotInfo current = enemy;
-								if (current.health < weakest.health) {
-									weakest = current;
-								}
-							}
-							rc.attackLocation(weakest.location);
-						} else {
-							// weapon's not ready, but enemies near
-							// Retreat
-							for (RobotInfo enemy : enemiesWithinRange) {
-								Direction dir = myLoc.directionTo(enemy.location).opposite();
-							if (rc.canMove(dir)) {
-								rc.move(dir);
-							}
+					int friendCount = friends.length;
+					int enemyCount = enemies.length;
+					if (rc.isCoreReady()&&enemyCount > 0 && rc.getWeaponDelay()<1) {
+						rc.attackLocation(enemies[0].location);						
+					} else if(rc.isCoreReady() && friends.length>0){
+						for (RobotInfo bot : friends) {
+							// Group around archons first
+							if (bot.type == RobotType.ARCHON) {
+								utils.tryMove(myLoc.directionTo(bot.location));
 							}
 						}
-					} else { // no enemies, move around friends. 	
-						Direction closerToBot;
-						for (RobotInfo bot : nearbyBots) {
-							closerToBot = myLoc.directionTo(bot.location);
-							if (rc.canMove(closerToBot)) {
-								rc.move(closerToBot);
-							} 
-						}
+						//otherwise group in general
+						utils.tryMove(myLoc.directionTo(friends[rand.nextInt(friendCount)].location));
+					} else {
+						utils.tryMove(utils.intToDirection(rand.nextInt(8)));
 					}
 				}
 				Clock.yield();
