@@ -1,4 +1,4 @@
-package team042;
+package team042dev;
 
 import java.util.Random;
 
@@ -30,12 +30,18 @@ public class Soldier {
 					MapLocation myLoc = rc.getLocation();
 					RobotInfo[] enemies= rc.senseHostileRobots(myLoc, myRange);
 					RobotInfo[] friends= rc.senseNearbyRobots(myRange);
+					
 					// If enemies within range, attack one
 					int friendCount = friends.length;
 					int enemyCount = enemies.length;
+					
+					// If enemies within range, attack one.
 					if (rc.isCoreReady()&&enemyCount > 0 && rc.getWeaponDelay()<1) {
-						rc.attackLocation(enemies[0].location);						
+						rc.attackLocation(enemies[0].location);
+						
+					// If there are no enemies around, but there are allies, group together.
 					} else if(rc.isCoreReady() && friends.length>0){
+						
 						for (RobotInfo bot : friends) {
 							// Group around archons first
 							if (bot.type == RobotType.ARCHON) {
