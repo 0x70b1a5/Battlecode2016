@@ -68,7 +68,7 @@ public class Turret {
 					break;}
 				else{
 					utils.tryMove(myLoc.directionTo(bot.location).rotateRight());}}
-			if (rt == RobotType.TURRET && rc.getRoundNum() % 30 == 0) {//only pack every 30 rounds
+			if (rt == RobotType.TURRET && rc.getRoundNum() % 50 == 0) {//only pack every 30 rounds
 				rc.pack();}}
 
 		Clock.yield();}

@@ -38,9 +38,12 @@ public class Archon {
 			Double probMoving = 0.9;
 			
 			// Building Probability distribution (this must sum to 1.0).
-			Double probBuildTurret = 0.9;
-			Double probBuildGuard = 0.05;
-			Double probBuildSoldier = 0.05;
+			// NB: This is parts-agnostic! 
+			//		 When we don't have enough parts for a turret, 
+			// 		we will build 50% guards, 50% soldiers.
+			Double probBuildTurret = 0.6;
+			Double probBuildGuard = 0.2;
+			Double probBuildSoldier = 0.2;
 			
 		while (true) {
 			// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
