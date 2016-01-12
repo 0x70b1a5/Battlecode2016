@@ -9,7 +9,7 @@ public class Archon {
 	public static RobotController rc;
 	public static Utilities utils;
 	public static Direction[] dirs = Utilities.dirs;
-	
+
 	public Archon(RobotController robotController) {
 		super();
 		rc = robotController;
@@ -28,9 +28,9 @@ public class Archon {
 			Team myTeam = rc.getTeam();
 			Random rand = new Random(rc.getID());
 			int mySight = 35;
-		while (true) {
-			// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
-			// at the end of it, the loop will iterate once per game round.
+			while (true) {
+				// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
+				// at the end of it, the loop will iterate once per game round.
 				MapLocation myLoc = rc.getLocation();
 				RobotInfo[] enemies = rc.senseHostileRobots(myLoc,mySight);
 				RobotInfo[] nearbyBots = rc.senseNearbyRobots();
@@ -55,7 +55,7 @@ public class Archon {
 					for (Direction dir : dirs) {
 						if (rc.canBuild(dir, RobotType.TURRET) && rc.isCoreReady()) {
 							if (typeToBuild % 2 == 0){
-									rc.build(dir, RobotType.TURRET);
+								rc.build(dir, RobotType.TURRET);
 							} else if (typeToBuild % 3 == 0) {
 								rc.build(dir, RobotType.GUARD);
 							} else {
@@ -90,20 +90,21 @@ public class Archon {
 					// - Repairing 
 
 					// REPAIRING
-					RobotInfo weakest = nearbyBots[0];
-					for (RobotInfo friend : nearbyBots) {
-						if (friend.team == myTeam && friend.health <= weakest.health ) {
-							weakest = friend;
+					if (nearbyBots.length>0) {
+						RobotInfo weakest = nearbyBots[0];
+						for (RobotInfo friend : nearbyBots) {
+							if (friend.team == myTeam && friend.health <= weakest.health ) {
+								weakest = friend;
+							}
+						}
+						if (weakest.team == myTeam && rc.canAttackLocation(weakest.location)) {
+							rc.repair(weakest.location);
 						}
 					}
-					if (weakest.team == myTeam && rc.canAttackLocation(weakest.location)) {
-						rc.repair(weakest.location);
-					}
-
 					// SIGNALING
 					// TODO: anything at all here
 				}
-				
+
 				Clock.yield();
 			}
 		} catch (Exception e) {
