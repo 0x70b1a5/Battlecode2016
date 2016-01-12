@@ -18,36 +18,50 @@ public class Turret {
 	}
 
 	public void run() {
-		int myAttackRange = 0;
 		try {
 			// ONCE
-			myAttackRange = rt.attackRadiusSquared;
 			Random rand = new Random(rc.getID());
 			//			Random rand = new Random(rc.getID());
 			while (true) {
-				MapLocation myLoc = rc.getLocation(); 
-				RobotInfo[] enemies = rc.senseHostileRobots(myLoc, myAttackRange);
-				int enemyCount = enemies.length;
-				
-				// If this robot type can attack, check for enemies within range and attack one
-				if (rc.isCoreReady()&&enemyCount > 0&&rc.isWeaponReady()) {
-					// Find weakest enemy
-					RobotInfo weakest = enemies[0];
-					for (RobotInfo enemy : enemies) {
-						RobotInfo current = enemy;
-						if (current.health < weakest.health) {
-							weakest = current;
-						}
-					}
-					if (rc.isWeaponReady()&&rc.canAttackLocation(weakest.location)) {
-						rc.attackLocation(weakest.location);
-					}					
-				}
-				Clock.yield();
+				attack(true);
 			}
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+
+	private void attack(boolean weakest) throws GameActionException {
+
+		MapLocation myLoc = rc.getLocation();
+		RobotInfo[] enemies = rc.senseHostileRobots(myLoc, rt.attackRadiusSquared);
+		int enemyCount = enemies.length;
+
+		// If this robot type can attack, check for enemies within range and attack one
+		if (rc.isCoreReady()&&enemyCount > 0&&rc.isWeaponReady()) {
+			// Find weakest enemy
+			RobotInfo target = enemies[0];
+
+
+			for (RobotInfo enemy : enemies) {
+				RobotInfo current = enemy;
+				if(weakest){
+					if (current.health < target.health) {
+						target = current;
+					}
+				}else{
+					if (current.health > target.health) {
+						target = current;
+					}
+				}
+
+			}
+			if (rc.isWeaponReady()&&rc.canAttackLocation(target.location)) {
+				rc.attackLocation(target.location);
+			}
+		}
+		Clock.yield();
+
 	}
 }

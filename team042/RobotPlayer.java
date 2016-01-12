@@ -6,47 +6,41 @@ import battlecode.common.RobotController;
 public class RobotPlayer {
 	
 	public static void run(RobotController robotController) {
-		
+
 		//Robot robot = null; //Can do it this way if we rewrite Robot like 170 did. Would allow us to have common utility methods.
-		
 		// parse the current robot. Might remove type() and just replace with hardcode. We're going for efficiency not 'proper' looking code
 
-		if (robotController.getType() == RobotType.ARCHON) {
+		RobotType robotType = robotController.getType();
 
-			Archon robot = new Archon(robotController);
-			robot.run();									
-			
-		} else if (robotController.getType() == RobotType.GUARD) {
-			
-			Guard robot = new Guard(robotController);
-			robot.run();
-			
-		} else if (robotController.getType() == RobotType.SCOUT) {
-
-			Scout robot = new Scout(robotController);
-			robot.run();
-			
-		} else if (robotController.getType() == RobotType.SOLDIER) {
-			
-			Soldier robot = new Soldier(robotController);
-			robot.run();
-			
-		} else if (robotController.getType() == RobotType.TURRET) {  //Merge this with TTM???
-			
-			Turret robot = new Turret(robotController);
-			robot.run();
-			
-		} else if (robotController.getType() == RobotType.TTM) {		//^^^^^^^^^^^^^^
-			
-			TTM robot = new TTM(robotController);
-			robot.run();
-			
-		} else if (robotController.getType() == RobotType.VIPER) {
-			
-			Viper robot = new Viper(robotController);
-			robot.run();
-			
-		} 
-
+		switch(robotType){
+			case ARCHON:
+				Archon robot = new Archon(robotController);
+				robot.run();
+				break;
+			case GUARD:
+				Guard guard = new Guard(robotController);
+				guard.run();
+				break;
+			case SCOUT:
+				Scout scout = new Scout(robotController);
+				scout.run();
+				break;
+			case VIPER:
+				Viper viper = new Viper(robotController);
+				viper.run();
+				break;
+			case TTM:
+				TTM ttm = new TTM(robotController);
+				ttm.run();
+				break;
+			case TURRET:
+				Turret turret = new Turret(robotController);
+				turret.run();
+				break;
+			case SOLDIER:
+				Soldier soldier = new Soldier(robotController);
+				soldier.run();
+				break;
+		}
 	}
 }
