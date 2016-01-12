@@ -21,19 +21,20 @@ public class Guard {
 		// TODO: make guards prefer attacking zeds
 		try {
 			// Any code here gets executed exactly once at the beginning of the game.
-			int myRange = rt.attackRadiusSquared;
+//			int myRange = rt.attackRadiusSquared;
+			int mySight = rt.sensorRadiusSquared;
 			Random rand = new Random(rc.getID());
 			while (true) {
 				// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
 				// at the end of it, the loop will iterate once per game round.
 				if (rc.isCoreReady()) {
 					MapLocation myLoc = rc.getLocation();
-					RobotInfo[] enemies= rc.senseHostileRobots(myLoc, myRange);
-					RobotInfo[] friends= rc.senseNearbyRobots(myRange);
+					RobotInfo[] enemies= rc.senseHostileRobots(myLoc, mySight);
+					RobotInfo[] friends= rc.senseNearbyRobots(mySight);
 					// If enemies within range, attack one
 					int friendCount = friends.length;
 					int enemyCount = enemies.length;
-					if (rc.isCoreReady()&&enemyCount > 0 && rc.getWeaponDelay()<1) {
+					if (rc.isCoreReady()&&enemyCount > 0 && rc.getWeaponDelay()<1&&rc.canAttackLocation(enemies[0].location)) {
 						rc.attackLocation(enemies[0].location);						
 					} else if(rc.isCoreReady() && friends.length>0){
 						for (RobotInfo bot : friends) {
