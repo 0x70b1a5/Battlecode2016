@@ -38,9 +38,9 @@ public class Archon {
 			Double probMoving = 0.9;
 			
 			// Building Probability distribution (this must sum to 1.0).
-			Double probBuildTurret = 0.2;
-			Double probBuildGuard = 0.1;
-			Double probBuildSoldier = 0.7;
+			Double probBuildTurret = 0.9;
+			Double probBuildGuard = 0.05;
+			Double probBuildSoldier = 0.05;
 			
 		while (true) {
 			// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
@@ -74,12 +74,11 @@ public class Archon {
 						Double randWhatToBuild = rand.nextDouble();
 						
 						for (Direction dir : dirs) {
-							
 							// If you can build in this direction, do so.
-							if (rc.canBuild(dir, RobotType.TURRET) && rc.isCoreReady()) {
+							if (rc.canBuild(dir, RobotType.SOLDIER) && rc.isCoreReady()) {
 								
 								if(randWhatToBuild <= probBuildTurret){
-									rc.build(dir, RobotType.TURRET);
+									if (rc.canBuild(dir, RobotType.TURRET)){rc.build(dir, RobotType.TURRET);}
 									break;
 								}else{
 									// Adjust the drawn rand to reflect failing this prob check.

@@ -30,10 +30,11 @@ As time and entropy, we are the inexorable.
 #### Ranked:
 1. N/A
 
-### Overall Scrims: 1-1 
+### Overall Scrims: 5-19
 #### Scrims:
 1. See Sharper (W,L,L) (closequarters, desert, helloworld) (LOSS)
 2. Teh Devs 1-0 (W) (closequarters) (WIN)
+3. // TODO populate list
 
 ## What 
 

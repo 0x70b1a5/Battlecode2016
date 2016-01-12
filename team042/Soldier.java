@@ -9,7 +9,7 @@ public class Soldier {
 	public static RobotController rc;
 	public static Utilities utils;
 	public static RobotType rt;
-	public static Direction[] dirs = Utilities.dirs;
+	public Direction[] dirs = Utilities.dirs;
 
 	public Soldier(RobotController robotController) {
 		super();
@@ -46,6 +46,16 @@ public class Soldier {
 						utils.tryMove(myLoc.directionTo(friends[rand.nextInt(friendCount)].location));
 					} else {
 						utils.tryMove(utils.intToDirection(rand.nextInt(8)));
+					}
+					//rubble
+					if (rc.isCoreReady()) {
+						for (Direction dir : Utilities.dirs) {
+							MapLocation rubbLoc = utils.directionToMapLoc(myLoc, dir);
+							if (rc.senseRubble(rubbLoc) >=50) {
+								rc.clearRubble(dir);
+								break;
+							}
+						}
 					}
 				}
 				Clock.yield();

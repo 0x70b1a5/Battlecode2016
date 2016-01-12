@@ -91,4 +91,37 @@ public class Utilities {
 				return Direction.NONE;
 		}
 	}
+	
+	public MapLocation directionToMapLoc(MapLocation curMapLoc, Direction d) {
+		MapLocation dirLoc;
+		switch(d) {
+		case NORTH:
+			dirLoc = new MapLocation(curMapLoc.x,curMapLoc.y-1);
+			return dirLoc;
+		case NORTH_EAST:
+			dirLoc = new MapLocation(curMapLoc.x+1,curMapLoc.y-1);
+			return dirLoc;
+		case EAST:
+			dirLoc = new MapLocation(curMapLoc.x+1,curMapLoc.y);
+			return dirLoc;
+		case SOUTH_EAST:
+			dirLoc = new MapLocation(curMapLoc.x+1,curMapLoc.y+1);
+			return dirLoc;
+		case SOUTH:
+			dirLoc = new MapLocation(curMapLoc.x,curMapLoc.y-1);
+			return dirLoc;
+		case SOUTH_WEST:
+			dirLoc = new MapLocation(curMapLoc.x-1,curMapLoc.y-1);
+			return dirLoc;
+		case WEST:
+			dirLoc = new MapLocation(curMapLoc.x-1,curMapLoc.y);
+			return dirLoc;
+		case NORTH_WEST:
+			dirLoc = new MapLocation(curMapLoc.x-1,curMapLoc.y+1);
+			return dirLoc;
+		default:
+			dirLoc = new MapLocation(curMapLoc.x,curMapLoc.y);
+			return dirLoc;
+	}
+	}
 }
