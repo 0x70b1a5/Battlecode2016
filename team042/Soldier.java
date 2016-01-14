@@ -35,7 +35,9 @@ public class Soldier {
 					int enemyCount = enemies.length;
 					if (rc.isCoreReady()&&enemyCount > 0 && rc.getWeaponDelay()<1) {
 						rc.attackLocation(enemies[0].location);						
-					} else if(rc.isCoreReady() && friends.length>0){
+					} else if (rc.isCoreReady() && enemyCount > 0){
+						utils.tryMove(myLoc.directionTo(enemies[rand.nextInt(enemyCount)].location));
+					} else if(rc.isCoreReady() && friendCount>0){
 						for (RobotInfo bot : friends) {
 							// Group around archons first
 							if (bot.type == RobotType.ARCHON) {
