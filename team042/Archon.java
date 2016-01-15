@@ -9,7 +9,7 @@ public class Archon {
 	public static RobotController rc;
 	public static Utilities utils;
 	public static Direction[] dirs = Utilities.dirs;
-	
+
 	public Archon(RobotController robotController) {
 		super();
 		rc = robotController;
@@ -28,34 +28,37 @@ public class Archon {
 			Team myTeam = rc.getTeam();
 			//Random rand = new Random(rc.getID());
 			Random rand = new Random(rc.getID()+167);
-			
-//			int mySight = 35;
-			
+
+			//			int mySight = 35;
+
 			Double probDoCore = 0.2;
-			
+
 			// Core-Ready probabilities (independent, so do not need to sum to 1).
 			Double probBuilding = 0.6;
 			Double probMoving = 0.9;
-			
+
 			// Building Probability distribution (this must sum to 1.0).
-			// NB: This is parts-agnostic! 
-			//		 When we don't have enough parts for a turret, 
-			// 		we will build 50% guards, 50% soldiers.
 			Double probBuildTurret = 0.6;
 			Double probBuildGuard = 0.2;
 			Double probBuildSoldier = 0.2;
-			
-		while (true) {
-			// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
-			// at the end of it, the loop will iterate once per game round.
-				MapLocation myLoc = rc.getLocation();
-//				RobotInfo[] enemies = rc.senseHostileRobots(myLoc,mySight);
-				RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-				//					Signal[] signals = rc.emptySignalQueue();
-				//					if (signals.length > 0) {
-				//						// TODO: interpret signals
-				//					}
+
+			while (true) {
+				MapLocation myLoc = utils.myLoc;
+				RobotInfo[] friends = utils.friends;
+				RobotInfo[] zeds = utils.zeds;
+				RobotInfo[] enemies = utils.enemies;
+				boolean panic = utils.panic;
 				
+				// if we're panicking, FORGET EVERYTHING ELSE AND RUN!!!
+				while (panic) {
+					MapLocation closestHostileLoc = utils.closestHostile(enemies);
+					if (closestHostileLoc != null) {utils.tryMove(myLoc.directionTo(closestHostileLoc).opposite());}
+					else {
+						utils.checkForCalmDown();
+						utils.tryMove(dirs[rand.nextInt()%8]);
+						// TODO FIXME ASAP: figure out how to set longterm vectors and STICK TO THEM.
+					}
+				}
 				// Attempt to run core tasks.
 				Double randDoCore = rand.nextDouble();
 				if (rc.isCoreReady() && randDoCore<=probDoCore) {
@@ -68,26 +71,30 @@ public class Archon {
 					// PRIORITIES:
 					// 1. Build turrets
 					// 2. Build soldiers/guards
-					// 3. Style on zeds
-					
+					// 3. Process signals
+
 					// Attempt to build stuff.
 					Double randToBuild = rand.nextDouble();
 					if (randToBuild <= probBuilding){
-						
+
 						Double randWhatToBuild = rand.nextDouble();
 						
 						for (Direction dir : dirs) {
 							// If you can build in this direction, do so.
 							if (rc.canBuild(dir, RobotType.SOLDIER) && rc.isCoreReady()) {
-								
+
 								if(randWhatToBuild <= probBuildTurret){
 									if (rc.canBuild(dir, RobotType.TURRET)){rc.build(dir, RobotType.TURRET);}
+									else{
+										// can't build -- either the direction is blocked, or we don't have enough parts
+										// TODO: convert to new building system w/flags
+									}
 									break;
 								}else{
 									// Adjust the drawn rand to reflect failing this prob check.
 									randWhatToBuild = randWhatToBuild - probBuildTurret;
 								}
-								
+
 								if(randWhatToBuild <= probBuildGuard){
 									rc.build(dir, RobotType.GUARD);
 									break;
@@ -95,7 +102,7 @@ public class Archon {
 									// Adjust the drawn rand to reflect failing this prob check.
 									randWhatToBuild = randWhatToBuild - probBuildGuard;
 								}
-								
+
 								if(randWhatToBuild <= probBuildSoldier){
 									rc.build(dir, RobotType.SOLDIER);
 									break;
@@ -103,34 +110,24 @@ public class Archon {
 									// Adjust the drawn rand to reflect failing this prob check.
 									randWhatToBuild = randWhatToBuild - probBuildSoldier;
 								}
-								
+
 								// The code should never reach this point naturally.
 							}
 						}
 					}
-					
+
 					// Attempt to move around.
 					Double randToMove = rand.nextDouble();
 					if(randToMove <= probMoving){
-						for (RobotInfo bot : nearbyBots) {
+						for (RobotInfo bot : friends) {
 							// Prioritize turrets
-							if (bot.team == utils.myTeam && bot.type == RobotType.TURRET) {
-								// Move toward it.
-								Direction closerToBot = myLoc.directionTo(bot.location);
-								utils.tryMove(closerToBot);
-								break;
-							} else if (bot.team == utils.myTeam) {
-								// Move toward it.
-								Direction closerToBot = myLoc.directionTo(bot.location);
-								utils.tryMove(closerToBot);
-								break;
-							} else {
-								// Move away.
-								Direction awayFromBot = myLoc.directionTo(bot.location).opposite();
-								utils.tryMove(awayFromBot);
-								break;
-							}
+							Direction closerToBot = myLoc.directionTo(bot.location);
+							utils.tryMove(closerToBot);
+							break;
 						}
+						// if we reach this point, we have no friends
+						utils.checkForPanic();
+						
 					}
 				} else {
 					// CORE-FREE TASKS:
@@ -138,27 +135,16 @@ public class Archon {
 					// - Repairing 
 
 					// REPAIRING
-					int numNearbyBots = nearbyBots.length;
-					if (numNearbyBots > 0){
-						
-						// Find the weakest nearby bot.
-						RobotInfo weakest = nearbyBots[0];
-						for (RobotInfo friend : nearbyBots) {
-							if (friend.team == myTeam && friend.health <= weakest.health ) {
-								weakest = friend;
-							}
-						}
-						
-						// Repair the weakest bot.
-						if (weakest.team == myTeam && rc.canAttackLocation(weakest.location)) {
-							rc.repair(weakest.location);
-						}
+					MapLocation weakestOne = utils.findWeakest(friends);
+					if(weakestOne!=null){
+						rc.repair(weakestOne);
+						return;
 					}
-
+					
 					// SIGNALING
 					// TODO: anything at all here
 				}
-				
+
 				Clock.yield();
 			}
 		} catch (Exception e) {

@@ -4,8 +4,7 @@
 As time and entropy, we are the inexorable.
 
 ## Changelog
-### 2016/01/13: Sprint Tournament Postmortem
-*View our match [here](http://www.twitch.tv/m4xmann/v/35241642?t=31m48s)*.
+### 2016/01/13: Sprint Tournament Postmortem (*View our match [here](http://www.twitch.tv/m4xmann/v/35241642?t=31m48s)*.)
   * [Dark times for the Operation](https://www.youtube.com/watch?v=19rv-48qERA). Having faced an avalanche of more sophisticated and coordinated foes, our "blind" bots have begun to show their shortcomings, in a big way.
     * Our Sprint matches were unfortunately short-lived. The sprint tournament's extremely high zombie spawn rate crushed our team before we could build a healthy enough resistance.
     * Additionally, our lack of cohesion may have drawn the zombies' attention and led to an early downfall.
