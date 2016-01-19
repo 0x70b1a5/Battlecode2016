@@ -1,5 +1,6 @@
 package team042;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -7,11 +8,10 @@ import battlecode.common.*;
 
 public class Utilities {
 	public static RobotController rc;
-	public Team myTeam, enemyTeam;
 	Random rand;
 	public static Direction[] dirs = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 		Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
-	
+
 	/*
 	 * MAP INTELLIGENCE:
 	 */
@@ -19,31 +19,26 @@ public class Utilities {
 	public MapLocation[] denLocs;
 	public MapLocation[] enemyArchonLocs;
 	public MapLocation[] bigZedLocs;
-	
-	/*
-	 * UNIT INTELLIGENCE:
-	 */
-	public RobotInfo[] friends;
-	public RobotInfo[] zeds;
-	public RobotInfo[] enemies;
-	public int mySight;
-	public RobotType rt;
-	public MapLocation myLoc;
-	
+
 	/*
 	 * ARCHON BEHAVIOR FLAGS:
 	 */
 	public boolean panic = false;
-	public RobotType nextTypeToBuild;
+	public RobotType nextTypeToBuild = null;
 	public boolean kamikaZed = false;
 	public double zedPanicRatio = 0.6;
+	public Direction fleeVector = null;
+	public int mySight = 35;
+	public Team myTeam = null;
+	public MapLocation myLoc = null; 
 	
 	public Utilities(RobotController robotController){
 		rc = robotController;
 		rand = new Random(rc.getID());
 		myTeam = rc.getTeam();
-		rt = rc.getType();
-		enemyTeam = myTeam.opponent();
+		RobotType rt = rc.getType();
+		Team enemyTeam = myTeam.opponent();
+		int mySight;
 		
 		//set mySight manually by unit type
 		switch (rt) {
@@ -56,26 +51,17 @@ public class Utilities {
 		default:
 			mySight = 24;
 		}
-		
-		friends = rc.senseNearbyRobots(mySight, myTeam);
-		zeds = rc.senseNearbyRobots(mySight, Team.ZOMBIE); 
-		enemies = rc.senseHostileRobots(myLoc, mySight);
 	}
 
-	public void tryMove(Direction d){
-		try {
-			int offsetIndex = 0;
-			int[] offsets = {0,1,-1,2,-2};
-			int dirint = directionToInt(d);
-			while (offsetIndex < 5 && !rc.canMove(dirs[(dirint+offsets[offsetIndex]+8)%8])) {
-				offsetIndex++;
-			}
-			if (offsetIndex < 5 && rc.isCoreReady()) {
-
-				rc.move(dirs[(dirint+offsets[offsetIndex]+8)%8]);
-			}
-		} catch (GameActionException e) {
-			e.printStackTrace();
+	public void tryMove(Direction d) throws GameActionException{
+		int offsetIndex = 0;
+		int[] offsets = {0,1,-1,2,-2};
+		int dirint = directionToInt(d);
+		while (offsetIndex < 5 && !rc.canMove(dirs[(dirint+offsets[offsetIndex]+8)%8])) {
+			offsetIndex++;
+		}
+		if (offsetIndex < 5 && rc.isCoreReady()) {
+			rc.move(dirs[(dirint+offsets[offsetIndex]+8)%8]);
 		}
 	}
 
@@ -157,6 +143,11 @@ public class Utilities {
 			return dirLoc;
 		}
 	}
+	
+	public Direction locToDir(MapLocation curMapLoc, MapLocation destination) {
+		Direction newDir = curMapLoc.directionTo(destination);
+		return newDir;
+	}
 
 	/*
 	 * Use this for adding data to their respective arrays 
@@ -173,8 +164,8 @@ public class Utilities {
 			return true;
 		}
 	}
-	
-	public int tryBuild(RobotType bot, Direction dir) throws GameActionException {
+
+	public int tryBuild(RobotType bot, Direction dir, RobotType rt) throws GameActionException {
 		/*
 		 * 0 = could not build
 		 * 1 = build succeeded
@@ -185,18 +176,23 @@ public class Utilities {
 		 * 6 = direction blocked by zed
 		 * 7 = direction blocked by neutral robot
 		 */
+		MapLocation loc = dirToLoc(myLoc, dir); 
 		// check: core, bot type. try to build the bot.
-		if (!rc.isCoreReady() || rt != RobotType.ARCHON){return 0;}
+		if (!rc.isCoreReady() || rt != RobotType.ARCHON || loc == null){return 0;}
 		else if (rc.canBuild(dir, bot)){
 			rc.build(dir, bot);
 			return 1;
 		} else {//we are a core-ready Archon that can't build for some reason
 			// is there rubble next to us?
-			if (rc.senseRubble(dirToLoc(myLoc, dir))>99){
+			if (rc.senseRubble(loc)>99){
 				return 3;
 			}
 			// is there a bot next to us?
-			RobotInfo nearBot = rc.senseRobotAtLocation(dirToLoc(myLoc,dir));
+			RobotInfo nearBot = rc.senseRobotAtLocation(loc);
+			if (nearBot==null){
+				// empty space, but we can't build for some reason
+				return 0;
+			}
 			Team botTeam = nearBot.team;
 			switch (botTeam) {
 			case A:
@@ -220,11 +216,20 @@ public class Utilities {
 			}
 		}
 	}
-	
+
 	public void checkForPanic() {
+		/*
+		 * Void function to determine whether or not our Archon should be panicking. 
+		 * 
+		 * If combined health of visible zeds versus the combined health of visible allies is greater than the ratio specified 
+		 * above in zedPanicRatio, then the Archon enters Panic Mode, which is characterized by 
+		 * running really fast away from the closest zed.
+		 */
 		// if we're already panicking, use checkForCalmDown() to see if we should return to normal behavior 
 		if (panic){return;}
-		else{//we're not panicking yet. good.....?		
+		else{//we're not panicking yet. good.....?	
+			RobotInfo[] friends = rc.senseNearbyRobots(mySight, myTeam);
+			RobotInfo[] zeds = rc.senseNearbyRobots(mySight, Team.ZOMBIE);
 			//compare total health of visible zeds to health of visible teammates
 			double totZedHealth = 0.0;
 			for (RobotInfo zed:zeds) {
@@ -234,14 +239,15 @@ public class Utilities {
 			for (RobotInfo friend:friends) {
 				totFriendHealth += friend.health;
 			}
-			
+
 			if (totZedHealth >0 && totFriendHealth/totZedHealth >= zedPanicRatio) {
+				rc.setIndicatorString(1, "I am panicking!!!!!");
 				panic = true;
 			}
 		}
 	}
-	
-	public void checkForCalmDown() {
+
+	public void checkForCalmDown(RobotInfo[] friends, RobotInfo[] zeds) {
 		// we should never run this unless we are panicking
 		if (!panic) {return;}
 		else {//we are panicking, good.....
@@ -249,12 +255,14 @@ public class Utilities {
 			int zedsL = zeds.length;
 			//check surroundings
 			if (friendsL > 0 && zedsL/friendsL < 1.0) {
+				fleeVector = null;
 				panic = false;
+				rc.setIndicatorString(1, "I am not panicking.");
 			}
 			// TODO: add more criteria for ending panic
 		}
 	}
-	
+
 	public MapLocation findWeakest(RobotInfo[] robots) {
 		double weakestSoFar = 0;
 		MapLocation weakestLocation = null;
@@ -267,7 +275,7 @@ public class Utilities {
 		}
 		return weakestLocation;
 	}
-	
+
 	public MapLocation closestHostile(RobotInfo[] enemies) {
 		double closestDist=1000.0;
 		MapLocation closestLocation = null;
@@ -280,5 +288,57 @@ public class Utilities {
 		}
 		return closestLocation;
 	}
+
+	public boolean rubbleRouse(Direction dir) throws GameActionException {
+		MapLocation rubLoc = dirToLoc(myLoc, dir);
+		if (rc.senseRubble(rubLoc) > 50 && rc.senseRubble(rubLoc) < 10000) {
+			rc.clearRubble(dir);
+			return true;
+		} else {
+			return false;
+		}
+	}
 	
+	public MapLocation setDestination(MapLocation curLoc, Direction dir, int spacesAway) {
+		/*
+		 * Intakes a unit's location, a direction to move, and the number of times to move in that direction.
+		 * Returns a MapLocation at the end of the journey.
+		 */
+		MapLocation destination = curLoc;
+		for (int spacesWalked=0; spacesWalked<spacesAway; spacesWalked++) {
+			destination = dirToLoc(destination,dir);
+		}
+		return destination;
+	}
+	
+	public MapLocation[] findBigZeds(RobotInfo[] zeds) {
+		MapLocation[] bigZedLocs = {};
+		for (RobotInfo zed:zeds) {
+			if (zed.type == RobotType.BIGZOMBIE) {
+				bigZedLocs[bigZedLocs.length] = zed.location;
+			}
+		}
+		return bigZedLocs;
+	}
+	
+	public MapLocation[] combineEnemyLocations(RobotInfo[] visibleEnemyArray, Signal[] incomingSignals) {
+		ArrayList<MapLocation> attackableEnemyArray = new ArrayList<MapLocation>();
+		for(RobotInfo r:visibleEnemyArray){
+			attackableEnemyArray.add(r.location);
+		}
+		for(Signal s:incomingSignals){
+			if(s.getTeam()==rc.getTeam().opponent()){
+				MapLocation enemySignalLocation = s.getLocation();
+				int distanceToSignalingEnemy = rc.getLocation().distanceSquaredTo(enemySignalLocation);
+				if(distanceToSignalingEnemy<=rc.getType().attackRadiusSquared){
+					attackableEnemyArray.add(enemySignalLocation);
+				}
+			}
+		}
+		MapLocation[] finishedArray = new MapLocation[attackableEnemyArray.size()];
+		for(int i=0;i<attackableEnemyArray.size();i++){
+			finishedArray[i]=attackableEnemyArray.get(i);
+		}
+		return finishedArray;
+	}
 }

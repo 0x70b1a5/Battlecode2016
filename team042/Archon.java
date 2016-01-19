@@ -9,6 +9,7 @@ public class Archon {
 	public static RobotController rc;
 	public static Utilities utils;
 	public static Direction[] dirs = Utilities.dirs;
+	public MapLocation myLoc;
 
 	public Archon(RobotController robotController) {
 		super();
@@ -25,43 +26,45 @@ public class Archon {
 		// --- TODO: spawn ratios respond to map/team status
 
 		try{
-			Team myTeam = rc.getTeam();
+			RobotType rt = RobotType.ARCHON;
 			//Random rand = new Random(rc.getID());
 			Random rand = new Random(rc.getID()+167);
-
-			//			int mySight = 35;
-
-			Double probDoCore = 0.2;
+			utils.myTeam = rc.getTeam();
+			Team myTeam = utils.myTeam;
+			int mySight = utils.mySight;
 
 			// Core-Ready probabilities (independent, so do not need to sum to 1).
-			Double probBuilding = 0.6;
-			Double probMoving = 0.9;
 
 			// Building Probability distribution (this must sum to 1.0).
-			Double probBuildTurret = 0.6;
-			Double probBuildGuard = 0.2;
-			Double probBuildSoldier = 0.2;
+			Double probBuildTurret = 0.4;
+			Double probBuildGuard = 0.1;
+			Double probBuildSoldier = 0.5;
 
 			while (true) {
-				MapLocation myLoc = utils.myLoc;
-				RobotInfo[] friends = utils.friends;
-				RobotInfo[] zeds = utils.zeds;
-				RobotInfo[] enemies = utils.enemies;
+				rc.setIndicatorString(1,"I entered my whlie loop");
+				myLoc = rc.getLocation();
+				utils.myLoc = myLoc;
+				RobotInfo[] enemies = rc.senseHostileRobots(myLoc, mySight);
+				RobotInfo[] friends = rc.senseNearbyRobots(mySight, myTeam);
+				RobotInfo[] zeds = rc.senseNearbyRobots(mySight, Team.ZOMBIE);
 				boolean panic = utils.panic;
-				
+
 				// if we're panicking, FORGET EVERYTHING ELSE AND RUN!!!
 				while (panic) {
+					rc.setIndicatorString(1,"I am panicking");
 					MapLocation closestHostileLoc = utils.closestHostile(enemies);
-					if (closestHostileLoc != null) {utils.tryMove(myLoc.directionTo(closestHostileLoc).opposite());}
-					else {
-						utils.checkForCalmDown();
-						utils.tryMove(dirs[rand.nextInt()%8]);
-						// TODO FIXME ASAP: figure out how to set longterm vectors and STICK TO THEM.
+					if (closestHostileLoc != null) {
+						//determine direction from nearest enemy
+						utils.fleeVector = myLoc.directionTo(closestHostileLoc).opposite(); 
 					}
+					//if we know which way to run, run that way.
+					if (utils.fleeVector!=null){utils.tryMove(utils.fleeVector);}
+					utils.checkForCalmDown(friends, zeds);
 				}
 				// Attempt to run core tasks.
-				Double randDoCore = rand.nextDouble();
-				if (rc.isCoreReady() && randDoCore<=probDoCore) {
+				if (rc.isCoreReady()) {
+
+					rc.setIndicatorString(2,"I entered the Core Tasks block");
 					// CORE-ONLY TASKS:
 					// - Move 
 					// - Construct bots
@@ -74,21 +77,15 @@ public class Archon {
 					// 3. Process signals
 
 					// Attempt to build stuff.
-					Double randToBuild = rand.nextDouble();
-					if (randToBuild <= probBuilding){
+					Double randWhatToBuild = rand.nextDouble();
 
-						Double randWhatToBuild = rand.nextDouble();
-						
-						for (Direction dir : dirs) {
-							// If you can build in this direction, do so.
-							if (rc.canBuild(dir, RobotType.SOLDIER) && rc.isCoreReady()) {
-
+					for (Direction dir : dirs) {
+						rc.setIndicatorString(2,"I entered the Build Stuff block");
+						// If you can build in this direction, do so.
+						if (rc.isCoreReady()) { 
+							while (utils.nextTypeToBuild == null) {
 								if(randWhatToBuild <= probBuildTurret){
-									if (rc.canBuild(dir, RobotType.TURRET)){rc.build(dir, RobotType.TURRET);}
-									else{
-										// can't build -- either the direction is blocked, or we don't have enough parts
-										// TODO: convert to new building system w/flags
-									}
+									utils.nextTypeToBuild = RobotType.TURRET;
 									break;
 								}else{
 									// Adjust the drawn rand to reflect failing this prob check.
@@ -96,7 +93,7 @@ public class Archon {
 								}
 
 								if(randWhatToBuild <= probBuildGuard){
-									rc.build(dir, RobotType.GUARD);
+									utils.nextTypeToBuild = RobotType.GUARD;
 									break;
 								}else{
 									// Adjust the drawn rand to reflect failing this prob check.
@@ -104,45 +101,92 @@ public class Archon {
 								}
 
 								if(randWhatToBuild <= probBuildSoldier){
-									rc.build(dir, RobotType.SOLDIER);
+									utils.nextTypeToBuild = RobotType.SOLDIER;
 									break;
 								}else{
 									// Adjust the drawn rand to reflect failing this prob check.
 									randWhatToBuild = randWhatToBuild - probBuildSoldier;
 								}
-
-								// The code should never reach this point naturally.
 							}
-						}
-					}
+							if (utils.nextTypeToBuild != null){
 
-					// Attempt to move around.
-					Double randToMove = rand.nextDouble();
-					if(randToMove <= probMoving){
-						for (RobotInfo bot : friends) {
-							// Prioritize turrets
-							Direction closerToBot = myLoc.directionTo(bot.location);
-							utils.tryMove(closerToBot);
+								rc.setIndicatorString(2,"I found something to build");
+								switch (utils.tryBuild(utils.nextTypeToBuild, dir, rt)){
+								case 0:
+									// Core not ready or not an Archon (?!)
+									break;
+								case 1:
+									// Build succeeded
+									utils.nextTypeToBuild = null;
+									break;
+								case 2:
+									// not enough parts
+									// => wait until we have enough parts
+									break;
+								case 3:
+									// blocked by rubble
+									if (utils.rubbleRouse(dir)) {
+										// clear successful
+										break;
+									} else {
+										// too much or too little rubble to bother clearing,
+										// OR, no rubble at all.
+										// TODO: check if anything needs to happen here
+										break;
+									}
+								case 4:
+									// blocked by friendly bot
+									break;
+								case 5:
+									// blocked by ENEMY BOT??
+									// see following case... 
+								case 6:
+									// blocked by ZED.
+									// move away, and immediately check for panic
+									utils.tryMove(dir.opposite());
+									utils.checkForPanic();
+									break;
+								case 7:
+									// blocked by neutral bot
+									rc.activate(utils.dirToLoc(myLoc, dir));
+									break;
+								default:
+									// ????
+								}
+							} else {
+								// either we shouldn't build, or we've already built
+								break;
+							}
+						} else {
+							// core is not ready
 							break;
 						}
-						// if we reach this point, we have no friends
-						utils.checkForPanic();
-						
 					}
+					// should we move?
+					utils.checkForPanic();
 				} else {
 					// CORE-FREE TASKS:
 					// - Signaling 
 					// - Repairing 
 
+					rc.setIndicatorString(2,"I'm in the repair/signal Core-free block");
 					// REPAIRING
-					MapLocation weakestOne = utils.findWeakest(friends);
-					if(weakestOne!=null){
-						rc.repair(weakestOne);
-						return;
-					}
-					
+					/*
+					 * FIXME 
+					 * FIXME
+					 * TODO
+					 * FIXME
+					 * THIS KEEPS BREAKING 
+					 * AAAAAAAAARGH 
+					 */
+//					MapLocation weakestOne = utils.findWeakest(friends);
+//					if(weakestOne!=null&&rc.senseRobotAtLocation(weakestOne).type!=RobotType.ARCHON){//can't repair archons!
+//						rc.repair(weakestOne);
+//						return;
+//					}
+
 					// SIGNALING
-					// TODO: anything at all here
+					// TODO signaling
 				}
 
 				Clock.yield();

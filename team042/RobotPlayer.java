@@ -1,18 +1,17 @@
 package team042;
 
 import battlecode.common.*;
-import battlecode.common.RobotController;
 
 public class RobotPlayer {
-	
+
 	public static void run(RobotController robotController) {
 
 		//Robot robot = null; //Can do it this way if we rewrite Robot like 170 did. Would allow us to have common utility methods.
 		// parse the current robot. Might remove type() and just replace with hardcode. We're going for efficiency not 'proper' looking code
+		try {
+			RobotType robotType = robotController.getType();
 
-		RobotType robotType = robotController.getType();
-
-		switch(robotType){
+			switch(robotType){
 			case ARCHON:
 				Archon robot = new Archon(robotController);
 				robot.run();
@@ -41,6 +40,10 @@ public class RobotPlayer {
 				Soldier soldier = new Soldier(robotController);
 				soldier.run();
 				break;
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }

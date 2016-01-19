@@ -33,13 +33,13 @@ public class Turret {
 
 	private void attack(boolean weakest) throws GameActionException {
 		MapLocation myLoc = rc.getLocation();
-		int myRange = rt.sensorRadiusSquared;
+		int mySight = rt.sensorRadiusSquared;
 		RobotInfo[] enemies;
 		if (rt == RobotType.TURRET) {
 			enemies = rc.senseHostileRobots(myLoc, rt.attackRadiusSquared);
 		} else {//rt==RobotType.TTM
-			enemies = rc.senseHostileRobots(myLoc, myRange);}
-		RobotInfo[] friends= rc.senseNearbyRobots(myRange);
+			enemies = rc.senseHostileRobots(myLoc, mySight);}
+		RobotInfo[] friends= rc.senseNearbyRobots(mySight);
 		int enemyCount = enemies.length;
 
 		// If this robot type can attack, check for enemies within range and attack one
@@ -48,18 +48,31 @@ public class Turret {
 				rc.unpack();}
 			if (rc.isCoreReady() && rc.isWeaponReady()) {
 				// Find weakest enemy
-				RobotInfo target = enemies[0];
-
-				for (RobotInfo enemy : enemies) {
-					RobotInfo current = enemy;
-					if(weakest){
-						if (current.health < target.health) {
-							target = current;}
-					}else{
-						if (current.health > target.health) {
-							target = current;}}				}
-				if (rc.isWeaponReady() && rc.canAttackLocation(target.location)) {
-					rc.attackLocation(target.location);}}}
+				MapLocation target = utils.findWeakest(enemies);
+				/*
+				 * 
+				 * BIG FAT COMMENT NOTE
+				 * 
+				 * DO NOT FIX TURRET CODE ANY MORE
+				 * 
+				 * THIS IS DEPRECATED; 
+				 * FINISH WRITING SCOUTS AND SIGNALS, THEN RENAME 'TurretwScout.java' TO 'Turret.java' AND 
+				 * 
+				 * DELETE
+				 * 
+				 * THIS 
+				 * 
+				 * FILE
+				 * 
+				 * !!!!!!
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 */
+				if (rc.isWeaponReady() && rc.canAttackLocation(target)) {
+					rc.attackLocation(target);}}}
 		else {
 			for (RobotInfo bot : friends) {
 				// Group around archons first
