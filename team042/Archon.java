@@ -186,7 +186,26 @@ public class Archon {
 //					}
 
 					// SIGNALING
-					// TODO signaling
+					Signal[] incomingSignals = rc.emptySignalQueue();
+					for (Signal s:incomingSignals) {
+						MapLocation encryptedLoc = s.getLocation();
+						MapLocation sigLoc = utils.decryptCoords(encryptedLoc.x);
+						switch (encryptedLoc.y) {
+						case 911:
+							// DEN LOCATION - REBROADCAST TO TROOPS
+							rc.broadcastMessageSignal(utils.encryptCoords(sigLoc.x, sigLoc.y), 911, 100);
+							break;
+						case 611:
+							// BIGZOMBIE LOCATION
+							break;
+						case 104:
+							// Turret tgt
+							break;
+						default: 
+							// enemy archon ID# - rebroadcast
+//							utils.enemyArchonLocs.add(new IdLocPair(encryptedLoc.y,sigLoc));
+						}
+					}
 				}
 
 				Clock.yield();

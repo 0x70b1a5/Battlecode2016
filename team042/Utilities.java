@@ -17,9 +17,11 @@ public class Utilities {
 	 */
 	public MapLocation base;
 	public MapLocation[] denLocs;
-	public MapLocation[] enemyArchonLocs;
 	public MapLocation[] bigZedLocs;
-
+	public MapLocation[] corners;
+	public ArrayList<IdLocPair> enemyArchonLocs;
+	public ArrayList<IdLocPair> friendlyArchonLocs;
+	
 	/*
 	 * ARCHON BEHAVIOR FLAGS:
 	 */
@@ -263,7 +265,7 @@ public class Utilities {
 		}
 	}
 
-	public MapLocation findWeakest(RobotInfo[] robots) {
+	public MapLocation findWeakestLoc(RobotInfo[] robots) {
 		double weakestSoFar = 0;
 		MapLocation weakestLocation = null;
 		for(RobotInfo r:robots){
@@ -275,6 +277,19 @@ public class Utilities {
 		}
 		return weakestLocation;
 	}
+	
+	public RobotInfo findWeakestBot(RobotInfo[] robots) {
+		double weakestSoFar = 0;
+		RobotInfo weakestBot = null;
+		for(RobotInfo r:robots){
+			double weakness = r.maxHealth-r.health;
+			if(weakness>weakestSoFar){
+				weakestBot = r;
+				weakestSoFar=weakness;
+			}
+		}
+		return weakestBot;
+	}
 
 	public MapLocation closestHostile(RobotInfo[] enemies) {
 		double closestDist=1000.0;
@@ -284,6 +299,19 @@ public class Utilities {
 			if (distance < closestDist) {
 				closestDist = distance;
 				closestLocation = badguy.location;
+			}
+		}
+		return closestLocation;
+	}
+	
+	public MapLocation closest(MapLocation[] locs) {
+		double closestDist=1000.0;
+		MapLocation closestLocation = null;
+		for (MapLocation l:locs) {
+			double distance = myLoc.distanceSquaredTo(l);
+			if (distance < closestDist) {
+				closestDist = distance;
+				closestLocation = l;
 			}
 		}
 		return closestLocation;
@@ -340,5 +368,18 @@ public class Utilities {
 			finishedArray[i]=attackableEnemyArray.get(i);
 		}
 		return finishedArray;
+	}
+	
+	public int encryptCoords(int x, int y) {
+		int encryptedCoords;
+		encryptedCoords = x*1000000;
+		encryptedCoords += y;
+		return encryptedCoords;
+	}
+	
+	public MapLocation decryptCoords(int encryptedCoords) {
+		int unEnX = encryptedCoords % 1000000;
+		int unEnY = encryptedCoords - 1000000;
+		return new MapLocation(unEnX, unEnY);
 	}
 }

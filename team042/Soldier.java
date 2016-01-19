@@ -25,9 +25,27 @@ public class Soldier {
 			// Any code here gets executed exactly once at the beginning of the game.
 			int myRange = rt.attackRadiusSquared;
 			Random rand = new Random(rc.getID());
+			MapLocation target = null;
 			while (true) {
-				// This is a loop to prevent the run() method from returning. Because of the Clock.yield()
-				// at the end of it, the loop will iterate once per game round.
+				Signal[] inSigs = rc.emptySignalQueue();
+				for (Signal s:inSigs) {
+					MapLocation enS = s.getLocation();
+					MapLocation deS = utils.decryptCoords(enS.x);
+					switch (enS.y) {
+					case 611:
+						// BIGZOMBIE
+						// fall through to next case
+					case 911:
+						// DEN LOCATION
+						if (target == null) {target = deS;}
+						break;
+					default:
+						// anything less important
+						break;
+					}
+					break;
+				}
+				
 				if (rc.isCoreReady()) {
 					MapLocation myLoc = rc.getLocation();
 					RobotInfo[] enemies= rc.senseHostileRobots(myLoc, myRange);
@@ -36,7 +54,12 @@ public class Soldier {
 					int friendCount = friends.length;
 					int enemyCount = enemies.length;
 					if (rc.isCoreReady()&&enemyCount > 0 && rc.getWeaponDelay()<1) {
-						rc.attackLocation(enemies[0].location);						
+						// check high priority targets 
+						if (target != null && rc.canAttackLocation(target)) {rc.attackLocation(target);}
+						else {// check weak targets
+							target = utils.findWeakestLoc(enemies);
+							rc.attackLocation(target);
+						}
 					} else if (rc.isCoreReady() && enemyCount > 0){
 						//kite enemies
 						MapLocation closestEnemyLoc = utils.closestHostile(enemies);
