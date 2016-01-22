@@ -114,36 +114,55 @@ public class Utilities {
 	}
 
 	public MapLocation dirToLoc(MapLocation curMapLoc, Direction d) {
-		MapLocation dirLoc;
+		MapLocation dirLoc = null;
+		int x;
+		int y;
 		switch(d) {
 		case NORTH:
-			dirLoc = new MapLocation(curMapLoc.x,curMapLoc.y-1);
-			return dirLoc;
+			x = curMapLoc.x;
+			y = curMapLoc.y-1;
+			break;
 		case NORTH_EAST:
-			dirLoc = new MapLocation(curMapLoc.x+1,curMapLoc.y-1);
-			return dirLoc;
+			x = curMapLoc.x+1;
+			y = curMapLoc.y-1;
+			break;
 		case EAST:
-			dirLoc = new MapLocation(curMapLoc.x+1,curMapLoc.y);
-			return dirLoc;
+			x = curMapLoc.x+1;
+			y = curMapLoc.y;
+			break;
 		case SOUTH_EAST:
-			dirLoc = new MapLocation(curMapLoc.x+1,curMapLoc.y+1);
-			return dirLoc;
+			x = curMapLoc.x+1;
+			y = curMapLoc.y+1;
+			break;
 		case SOUTH:
-			dirLoc = new MapLocation(curMapLoc.x,curMapLoc.y-1);
-			return dirLoc;
+			x = curMapLoc.x;
+			y = curMapLoc.y-1;
+			break;
 		case SOUTH_WEST:
-			dirLoc = new MapLocation(curMapLoc.x-1,curMapLoc.y-1);
-			return dirLoc;
+			x = curMapLoc.x-1;
+			y = curMapLoc.y-1;
+			break;
 		case WEST:
-			dirLoc = new MapLocation(curMapLoc.x-1,curMapLoc.y);
-			return dirLoc;
+			x = curMapLoc.x-1;
+			y = curMapLoc.y;
+			break;
 		case NORTH_WEST:
-			dirLoc = new MapLocation(curMapLoc.x-1,curMapLoc.y+1);
-			return dirLoc;
+			x = curMapLoc.x-1;
+			y = curMapLoc.y+1;
+			break;
 		default:
-			dirLoc = new MapLocation(curMapLoc.x,curMapLoc.y);
-			return dirLoc;
+			x = curMapLoc.x;
+			y = curMapLoc.y;
+			break;
 		}
+		if (x >= 0 && y >= 0) {
+			dirLoc = new MapLocation(x,y);
+		} else {
+			x = Math.max(0, x);
+			y = Math.max(0, y);
+			dirLoc = new MapLocation(x,y);
+		}
+		return  dirLoc;
 	}
 	
 	public Direction locToDir(MapLocation curMapLoc, MapLocation destination) {
@@ -294,6 +313,7 @@ public class Utilities {
 	public MapLocation closestHostile(RobotInfo[] enemies) {
 		double closestDist=1000.0;
 		MapLocation closestLocation = null;
+		MapLocation myLoc = rc.getLocation();
 		for (RobotInfo badguy:enemies) {
 			double distance = myLoc.distanceSquaredTo(badguy.location);
 			if (distance < closestDist) {
@@ -318,7 +338,7 @@ public class Utilities {
 	}
 
 	public boolean rubbleRouse(Direction dir) throws GameActionException {
-		MapLocation rubLoc = dirToLoc(myLoc, dir);
+		MapLocation rubLoc = dirToLoc(rc.getLocation(), dir);
 		if (rc.senseRubble(rubLoc) > 50 && rc.senseRubble(rubLoc) < 10000) {
 			rc.clearRubble(dir);
 			return true;
@@ -381,5 +401,13 @@ public class Utilities {
 		int unEnX = encryptedCoords % 1000000;
 		int unEnY = encryptedCoords - 1000000;
 		return new MapLocation(unEnX, unEnY);
+	}
+	
+	public void attack(MapLocation target) throws GameActionException {
+		if (target != null 
+			&& rc.canAttackLocation(target)
+			&& rc.isCoreReady()) {
+			rc.attackLocation(target);
+		}
 	}
 }

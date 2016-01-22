@@ -55,10 +55,20 @@ public class Soldier {
 					int enemyCount = enemies.length;
 					if (rc.isCoreReady()&&enemyCount > 0 && rc.getWeaponDelay()<1) {
 						// check high priority targets 
+						for (RobotInfo e : enemies) {
+							if (e.type == RobotType.ZOMBIEDEN || e.type == RobotType.ARCHON) {
+								target = e.location;
+								break;
+							}
+						}
 						if (target != null && rc.canAttackLocation(target)) {rc.attackLocation(target);}
 						else {// check weak targets
 							target = utils.findWeakestLoc(enemies);
-							rc.attackLocation(target);
+							if (target!=null){rc.attackLocation(target);}
+							else {
+								// just randomly attack
+								rc.attackLocation(enemies[rand.nextInt(enemies.length)].location);
+							}
 						}
 					} else if (rc.isCoreReady() && enemyCount > 0){
 						//kite enemies
@@ -81,11 +91,11 @@ public class Soldier {
 						utils.tryMove(utils.intToDirection(rand.nextInt(8)));
 					}
 					//rubble
-					if (rc.isCoreReady()) {
-						for (Direction dir : Utilities.dirs) {
-							utils.rubbleRouse(dir);
-						}
-					}
+					// KEEP CRASHING
+//					if (rc.isCoreReady()) {
+//						utils.rubbleRouse(dirs[rand.nextInt(8)]);
+//						break;
+//					}
 				}
 				Clock.yield();
 			}

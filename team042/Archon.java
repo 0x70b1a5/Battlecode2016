@@ -36,9 +36,10 @@ public class Archon {
 			// Core-Ready probabilities (independent, so do not need to sum to 1).
 
 			// Building Probability distribution (this must sum to 1.0).
-			Double probBuildTurret = 0.4;
-			Double probBuildGuard = 0.1;
+			Double probBuildTurret = 0.3;
+			Double probBuildGuard = 0.2;
 			Double probBuildSoldier = 0.5;
+			Double probBuildScout = 0.0;
 
 			while (true) {
 				rc.setIndicatorString(1,"I entered my whlie loop");
@@ -58,7 +59,7 @@ public class Archon {
 						utils.fleeVector = myLoc.directionTo(closestHostileLoc).opposite(); 
 					}
 					//if we know which way to run, run that way.
-					if (utils.fleeVector!=null){utils.tryMove(utils.fleeVector);}
+					if (utils.fleeVector!=null&&rc.canMove(utils.fleeVector)){utils.tryMove(utils.fleeVector);}
 					utils.checkForCalmDown(friends, zeds);
 				}
 				// Attempt to run core tasks.
@@ -102,6 +103,13 @@ public class Archon {
 
 								if(randWhatToBuild <= probBuildSoldier){
 									utils.nextTypeToBuild = RobotType.SOLDIER;
+									break;
+								}else{
+									// Adjust the drawn rand to reflect failing this prob check.
+									randWhatToBuild = randWhatToBuild - probBuildSoldier;
+								}
+								if(randWhatToBuild <= probBuildScout){
+									utils.nextTypeToBuild = RobotType.SCOUT;
 									break;
 								}else{
 									// Adjust the drawn rand to reflect failing this prob check.
